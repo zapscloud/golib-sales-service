@@ -1,4 +1,4 @@
-package sales_services
+package sales_service
 
 import (
 	"fmt"
@@ -14,44 +14,44 @@ import (
 	"github.com/zapscloud/golib-utils/utils"
 )
 
-type DealerService interface {
+type StatesService interface {
 	// List - List All records
 	List(filter string, sort string, skip int64, limit int64) (utils.Map, error)
 	// Get - Find By Code
-	Get(dealerId string) (utils.Map, error)
+	Get(statesId string) (utils.Map, error)
 	// Find - Find the item
 	Find(filter string) (utils.Map, error)
 	// Create - Create Service
 	Create(indata utils.Map) (utils.Map, error)
 	// Update - Update Service
-	Update(dealerId string, indata utils.Map) (utils.Map, error)
+	Update(statesId string, indata utils.Map) (utils.Map, error)
 	// Delete - Delete Service
-	Delete(dealerId string, delete_permanent bool) error
+	Delete(statesId string, delete_permanent bool) error
 
 	EndService()
 }
 
-type dealerBaseService struct {
+type statesBaseService struct {
 	db_utils.DatabaseService
 	dbRegion    db_utils.DatabaseService
-	daoDealer   sales_repository.DealerDao
+	daoStates   sales_repository.StatesDao
 	daoBusiness platform_repository.BusinessDao
-	child       DealerService
+	child       StatesService
 	businessId  string
 }
 
-// NewDealerService - Construct Dealer
-func NewDealerService(props utils.Map) (DealerService, error) {
+// NewStatesService - Construct States
+func NewStatesService(props utils.Map) (StatesService, error) {
 	funcode := sales_common.GetServiceModuleCode() + "M" + "01"
 
-	log.Printf("DealerService::Start ")
+	log.Printf("StatesService::Start ")
 	// Verify whether the business id data passed
 	businessId, err := utils.GetMemberDataStr(props, sales_common.FLD_BUSINESS_ID)
 	if err != nil {
 		return nil, err
 	}
 
-	p := dealerBaseService{}
+	p := statesBaseService{}
 	// Open Database Service
 	err = p.OpenDatabaseService(props)
 	if err != nil {
@@ -59,7 +59,7 @@ func NewDealerService(props utils.Map) (DealerService, error) {
 	}
 
 	// Open RegionDB Service
-	p.dbRegion, err = platform_services.OpenRegionDatabaseService(props)
+	p.dbRegion, err = platform_service.OpenRegionDatabaseService(props)
 	if err != nil {
 		p.CloseDatabaseService()
 		return nil, err
@@ -83,114 +83,114 @@ func NewDealerService(props utils.Map) (DealerService, error) {
 	return &p, err
 }
 
-// dealerBaseService - Close all the services
-func (p *dealerBaseService) EndService() {
+// statesBaseService - Close all the services
+func (p *statesBaseService) EndService() {
 	log.Printf("EndService ")
 	p.CloseDatabaseService()
 	p.dbRegion.CloseDatabaseService()
 }
 
-func (p *dealerBaseService) initializeService() {
-	log.Printf("DealerService:: GetBusinessDao ")
+func (p *statesBaseService) initializeService() {
+	log.Printf("StatesService:: GetBusinessDao ")
 	p.daoBusiness = platform_repository.NewBusinessDao(p.GetClient())
-	p.daoDealer = sales_repository.NewDealerDao(p.dbRegion.GetClient(), p.businessId)
+	p.daoStates = sales_repository.NewStatesDao(p.dbRegion.GetClient(), p.businessId)
 }
 
 // List - List All records
-func (p *dealerBaseService) List(filter string, sort string, skip int64, limit int64) (utils.Map, error) {
+func (p *statesBaseService) List(filter string, sort string, skip int64, limit int64) (utils.Map, error) {
 
-	log.Println("dealerBaseService::FindAll - Begin")
+	log.Println("statesBaseService::FindAll - Begin")
 
-	listdata, err := p.daoDealer.List(filter, sort, skip, limit)
+	listdata, err := p.daoStates.List(filter, sort, skip, limit)
 	if err != nil {
 		return nil, err
 	}
 
-	log.Println("dealerBaseService::FindAll - End ")
+	log.Println("statesBaseService::FindAll - End ")
 	return listdata, nil
 }
 
 // Get - Find By Code
-func (p *dealerBaseService) Get(dealerId string) (utils.Map, error) {
-	log.Printf("dealerBaseService::Get::  Begin %v", dealerId)
+func (p *statesBaseService) Get(statesId string) (utils.Map, error) {
+	log.Printf("statesBaseService::Get::  Begin %v", statesId)
 
-	data, err := p.daoDealer.Get(dealerId)
+	data, err := p.daoStates.Get(statesId)
 
-	log.Println("dealerBaseService::Get:: End ", err)
+	log.Println("statesBaseService::Get:: End ", err)
 	return data, err
 }
 
-func (p *dealerBaseService) Find(filter string) (utils.Map, error) {
-	fmt.Println("dealerService::FindByCode::  Begin ", filter)
+func (p *statesBaseService) Find(filter string) (utils.Map, error) {
+	fmt.Println("StatesService::FindByCode::  Begin ", filter)
 
-	data, err := p.daoDealer.Find(filter)
-	log.Println("dealerService::FindByCode:: End ", err)
+	data, err := p.daoStates.Find(filter)
+	log.Println("StatesService::FindByCode:: End ", err)
 	return data, err
 }
 
 // Create - Create Service
-func (p *dealerBaseService) Create(indata utils.Map) (utils.Map, error) {
+func (p *statesBaseService) Create(indata utils.Map) (utils.Map, error) {
 
-	log.Println("DealerService::Create - Begin")
-	var dealerId string
+	log.Println("StatesService::Create - Begin")
+	var statesId string
 
-	dataval, dataok := indata[sales_common.FLD_DEALER_ID]
+	dataval, dataok := indata[sales_common.FLD_STATE_ID]
 	if dataok {
-		dealerId = strings.ToLower(dataval.(string))
+		statesId = strings.ToLower(dataval.(string))
 	} else {
-		dealerId = utils.GenerateUniqueId("dealr")
-		log.Println("Unique Dealer ID", dealerId)
+		statesId = utils.GenerateUniqueId("stat")
+		log.Println("Unique States ID", statesId)
 	}
 
 	// Assign BusinessId
 	indata[sales_common.FLD_BUSINESS_ID] = p.businessId
-	indata[sales_common.FLD_DEALER_ID] = dealerId
+	indata[sales_common.FLD_STATE_ID] = statesId
 
-	data, err := p.daoDealer.Create(indata)
+	data, err := p.daoStates.Create(indata)
 	if err != nil {
 		return utils.Map{}, err
 	}
 
-	log.Println("DealerService::Create - End ")
+	log.Println("StatesService::Create - End ")
 	return data, nil
 }
 
 // Update - Update Service
-func (p *dealerBaseService) Update(dealerId string, indata utils.Map) (utils.Map, error) {
+func (p *statesBaseService) Update(statesId string, indata utils.Map) (utils.Map, error) {
 
-	log.Println("DealerService::Update - Begin")
+	log.Println("StatesService::Update - Begin")
 
-	data, err := p.daoDealer.Update(dealerId, indata)
+	data, err := p.daoStates.Update(statesId, indata)
 
-	log.Println("DealerService::Update - End ")
+	log.Println("StatesService::Update - End ")
 	return data, err
 }
 
 // Delete - Delete Service
-func (p *dealerBaseService) Delete(dealerId string, delete_permanent bool) error {
+func (p *statesBaseService) Delete(statesId string, delete_permanent bool) error {
 
-	log.Println("DealerService::Delete - Begin", dealerId)
+	log.Println("StatesService::Delete - Begin", statesId)
 
 	if delete_permanent {
-		result, err := p.daoDealer.Delete(dealerId)
+		result, err := p.daoStates.Delete(statesId)
 		if err != nil {
 			return err
 		}
 		log.Printf("Delete %v", result)
 	} else {
 		indata := utils.Map{db_common.FLD_IS_DELETED: true}
-		data, err := p.Update(dealerId, indata)
+		data, err := p.Update(statesId, indata)
 		if err != nil {
 			return err
 		}
 		log.Println("Update for Delete Flag", data)
 	}
 
-	log.Printf("DealerService::Delete - End")
+	log.Printf("StatesService::Delete - End")
 	return nil
 }
 
-func (p *dealerBaseService) errorReturn(err error) (DealerService, error) {
+func (p *statesBaseService) errorReturn(err error) (StatesService, error) {
 	// Close the Database Connection
 	p.EndService()
 	return nil, err

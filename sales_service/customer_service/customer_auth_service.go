@@ -7,7 +7,8 @@ import (
 	"github.com/zapscloud/golib-auth/auth_services"
 	"github.com/zapscloud/golib-platform-repository/platform_common"
 	"github.com/zapscloud/golib-sales-repository/sales_common"
-	"github.com/zapscloud/golib-sales-services/sales_services"
+	"github.com/zapscloud/golib-sales-service/sales_service"
+
 	"github.com/zapscloud/golib-utils/utils"
 )
 
@@ -103,7 +104,7 @@ func authenticateCustomer(dbProps utils.Map, businessId string, dataAuth utils.M
 	dbProps[sales_common.FLD_BUSINESS_ID] = businessId
 
 	// User Validation
-	svcCustomer, err := sales_services.NewCustomerService(dbProps)
+	svcCustomer, err := sales_service.NewCustomerService(dbProps)
 	if err != nil {
 		err := &utils.AppError{ErrorStatus: 417, ErrorMsg: "Status Expectation Failed", ErrorDetail: "Authentication Failure"}
 		return utils.Map{}, err

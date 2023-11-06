@@ -1,4 +1,4 @@
-package sales_services
+package sales_service
 
 import (
 	"fmt"
@@ -14,44 +14,44 @@ import (
 	"github.com/zapscloud/golib-utils/utils"
 )
 
-type StatesService interface {
+type QuizService interface {
 	// List - List All records
 	List(filter string, sort string, skip int64, limit int64) (utils.Map, error)
 	// Get - Find By Code
-	Get(statesId string) (utils.Map, error)
+	Get(quizId string) (utils.Map, error)
 	// Find - Find the item
 	Find(filter string) (utils.Map, error)
 	// Create - Create Service
 	Create(indata utils.Map) (utils.Map, error)
 	// Update - Update Service
-	Update(statesId string, indata utils.Map) (utils.Map, error)
+	Update(quizId string, indata utils.Map) (utils.Map, error)
 	// Delete - Delete Service
-	Delete(statesId string, delete_permanent bool) error
+	Delete(quizId string, delete_permanent bool) error
 
 	EndService()
 }
 
-type statesBaseService struct {
+type quizBaseService struct {
 	db_utils.DatabaseService
 	dbRegion    db_utils.DatabaseService
-	daoStates   sales_repository.StatesDao
+	daoQuiz     sales_repository.QuizDao
 	daoBusiness platform_repository.BusinessDao
-	child       StatesService
+	child       QuizService
 	businessId  string
 }
 
-// NewStatesService - Construct States
-func NewStatesService(props utils.Map) (StatesService, error) {
+// NewQuizService - Construct Quiz
+func NewQuizService(props utils.Map) (QuizService, error) {
 	funcode := sales_common.GetServiceModuleCode() + "M" + "01"
 
-	log.Printf("StatesService::Start ")
+	log.Printf("QuizService::Start ")
 	// Verify whether the business id data passed
 	businessId, err := utils.GetMemberDataStr(props, sales_common.FLD_BUSINESS_ID)
 	if err != nil {
 		return nil, err
 	}
 
-	p := statesBaseService{}
+	p := quizBaseService{}
 	// Open Database Service
 	err = p.OpenDatabaseService(props)
 	if err != nil {
@@ -59,7 +59,7 @@ func NewStatesService(props utils.Map) (StatesService, error) {
 	}
 
 	// Open RegionDB Service
-	p.dbRegion, err = platform_services.OpenRegionDatabaseService(props)
+	p.dbRegion, err = platform_service.OpenRegionDatabaseService(props)
 	if err != nil {
 		p.CloseDatabaseService()
 		return nil, err
@@ -83,114 +83,114 @@ func NewStatesService(props utils.Map) (StatesService, error) {
 	return &p, err
 }
 
-// statesBaseService - Close all the services
-func (p *statesBaseService) EndService() {
+// quizBaseService - Close all the services
+func (p *quizBaseService) EndService() {
 	log.Printf("EndService ")
 	p.CloseDatabaseService()
 	p.dbRegion.CloseDatabaseService()
 }
 
-func (p *statesBaseService) initializeService() {
-	log.Printf("StatesService:: GetBusinessDao ")
+func (p *quizBaseService) initializeService() {
+	log.Printf("QuizService:: GetBusinessDao ")
 	p.daoBusiness = platform_repository.NewBusinessDao(p.GetClient())
-	p.daoStates = sales_repository.NewStatesDao(p.dbRegion.GetClient(), p.businessId)
+	p.daoQuiz = sales_repository.NewQuizDao(p.GetClient(), p.businessId)
 }
 
 // List - List All records
-func (p *statesBaseService) List(filter string, sort string, skip int64, limit int64) (utils.Map, error) {
+func (p *quizBaseService) List(filter string, sort string, skip int64, limit int64) (utils.Map, error) {
 
-	log.Println("statesBaseService::FindAll - Begin")
+	log.Println("quizBaseService::FindAll - Begin")
 
-	listdata, err := p.daoStates.List(filter, sort, skip, limit)
+	listdata, err := p.daoQuiz.List(filter, sort, skip, limit)
 	if err != nil {
 		return nil, err
 	}
 
-	log.Println("statesBaseService::FindAll - End ")
+	log.Println("quizBaseService::FindAll - End ")
 	return listdata, nil
 }
 
 // Get - Find By Code
-func (p *statesBaseService) Get(statesId string) (utils.Map, error) {
-	log.Printf("statesBaseService::Get::  Begin %v", statesId)
+func (p *quizBaseService) Get(quizId string) (utils.Map, error) {
+	log.Printf("quizBaseService::Get::  Begin %v", quizId)
 
-	data, err := p.daoStates.Get(statesId)
+	data, err := p.daoQuiz.Get(quizId)
 
-	log.Println("statesBaseService::Get:: End ", err)
+	log.Println("quizBaseService::Get:: End ", err)
 	return data, err
 }
 
-func (p *statesBaseService) Find(filter string) (utils.Map, error) {
-	fmt.Println("StatesService::FindByCode::  Begin ", filter)
+func (p *quizBaseService) Find(filter string) (utils.Map, error) {
+	fmt.Println("QuizService::FindByCode::  Begin ", filter)
 
-	data, err := p.daoStates.Find(filter)
-	log.Println("StatesService::FindByCode:: End ", err)
+	data, err := p.daoQuiz.Find(filter)
+	log.Println("QuizService::FindByCode:: End ", err)
 	return data, err
 }
 
 // Create - Create Service
-func (p *statesBaseService) Create(indata utils.Map) (utils.Map, error) {
+func (p *quizBaseService) Create(indata utils.Map) (utils.Map, error) {
 
-	log.Println("StatesService::Create - Begin")
-	var statesId string
+	log.Println("QuizService::Create - Begin")
+	var quizId string
 
-	dataval, dataok := indata[sales_common.FLD_STATE_ID]
+	dataval, dataok := indata[sales_common.FLD_QUIZ_ID]
 	if dataok {
-		statesId = strings.ToLower(dataval.(string))
+		quizId = strings.ToLower(dataval.(string))
 	} else {
-		statesId = utils.GenerateUniqueId("stat")
-		log.Println("Unique States ID", statesId)
+		quizId = utils.GenerateUniqueId("quiz")
+		log.Println("Unique Quiz ID", quizId)
 	}
 
 	// Assign BusinessId
 	indata[sales_common.FLD_BUSINESS_ID] = p.businessId
-	indata[sales_common.FLD_STATE_ID] = statesId
+	indata[sales_common.FLD_QUIZ_ID] = quizId
 
-	data, err := p.daoStates.Create(indata)
+	data, err := p.daoQuiz.Create(indata)
 	if err != nil {
 		return utils.Map{}, err
 	}
 
-	log.Println("StatesService::Create - End ")
+	log.Println("QuizService::Create - End ")
 	return data, nil
 }
 
 // Update - Update Service
-func (p *statesBaseService) Update(statesId string, indata utils.Map) (utils.Map, error) {
+func (p *quizBaseService) Update(quizId string, indata utils.Map) (utils.Map, error) {
 
-	log.Println("StatesService::Update - Begin")
+	log.Println("QuizService::Update - Begin")
 
-	data, err := p.daoStates.Update(statesId, indata)
+	data, err := p.daoQuiz.Update(quizId, indata)
 
-	log.Println("StatesService::Update - End ")
+	log.Println("QuizService::Update - End ")
 	return data, err
 }
 
 // Delete - Delete Service
-func (p *statesBaseService) Delete(statesId string, delete_permanent bool) error {
+func (p *quizBaseService) Delete(quizId string, delete_permanent bool) error {
 
-	log.Println("StatesService::Delete - Begin", statesId)
+	log.Println("QuizService::Delete - Begin", quizId)
 
 	if delete_permanent {
-		result, err := p.daoStates.Delete(statesId)
+		result, err := p.daoQuiz.Delete(quizId)
 		if err != nil {
 			return err
 		}
 		log.Printf("Delete %v", result)
 	} else {
 		indata := utils.Map{db_common.FLD_IS_DELETED: true}
-		data, err := p.Update(statesId, indata)
+		data, err := p.Update(quizId, indata)
 		if err != nil {
 			return err
 		}
 		log.Println("Update for Delete Flag", data)
 	}
 
-	log.Printf("StatesService::Delete - End")
+	log.Printf("QuizService::Delete - End")
 	return nil
 }
 
-func (p *statesBaseService) errorReturn(err error) (StatesService, error) {
+func (p *quizBaseService) errorReturn(err error) (QuizService, error) {
 	// Close the Database Connection
 	p.EndService()
 	return nil, err

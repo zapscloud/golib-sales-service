@@ -1,4 +1,4 @@
-package sales_services
+package sales_service
 
 import (
 	"fmt"
@@ -14,44 +14,44 @@ import (
 	"github.com/zapscloud/golib-utils/utils"
 )
 
-type CouponService interface {
+type BannerService interface {
 	// List - List All records
 	List(filter string, sort string, skip int64, limit int64) (utils.Map, error)
 	// Get - Find By Code
-	Get(couponId string) (utils.Map, error)
+	Get(bannerId string) (utils.Map, error)
 	// Find - Find the item
 	Find(filter string) (utils.Map, error)
 	// Create - Create Service
 	Create(indata utils.Map) (utils.Map, error)
 	// Update - Update Service
-	Update(couponId string, indata utils.Map) (utils.Map, error)
+	Update(bannerId string, indata utils.Map) (utils.Map, error)
 	// Delete - Delete Service
-	Delete(couponId string, delete_permanent bool) error
+	Delete(bannerId string, delete_permanent bool) error
 
 	EndService()
 }
 
-type couponBaseService struct {
+type bannerBaseService struct {
 	db_utils.DatabaseService
 	dbRegion    db_utils.DatabaseService
-	daoCoupon   sales_repository.CouponDao
+	daoBanner   sales_repository.BannerDao
 	daoBusiness platform_repository.BusinessDao
-	child       CouponService
+	child       BannerService
 	businessId  string
 }
 
-// NewCouponService - Construct Coupon
-func NewCouponService(props utils.Map) (CouponService, error) {
+// NewBannerService - Construct Banner
+func NewBannerService(props utils.Map) (BannerService, error) {
 	funcode := sales_common.GetServiceModuleCode() + "M" + "01"
 
-	log.Printf("CouponService::Start ")
+	log.Printf("BannerService::Start ")
 	// Verify whether the business id data passed
 	businessId, err := utils.GetMemberDataStr(props, sales_common.FLD_BUSINESS_ID)
 	if err != nil {
 		return nil, err
 	}
 
-	p := couponBaseService{}
+	p := bannerBaseService{}
 	// Open Database Service
 	err = p.OpenDatabaseService(props)
 	if err != nil {
@@ -59,7 +59,7 @@ func NewCouponService(props utils.Map) (CouponService, error) {
 	}
 
 	// Open RegionDB Service
-	p.dbRegion, err = platform_services.OpenRegionDatabaseService(props)
+	p.dbRegion, err = platform_service.OpenRegionDatabaseService(props)
 	if err != nil {
 		p.CloseDatabaseService()
 		return nil, err
@@ -83,114 +83,114 @@ func NewCouponService(props utils.Map) (CouponService, error) {
 	return &p, err
 }
 
-// couponBaseService - Close all the services
-func (p *couponBaseService) EndService() {
+// BannerBaseService - Close all the services
+func (p *bannerBaseService) EndService() {
 	log.Printf("EndService ")
 	p.CloseDatabaseService()
 	p.dbRegion.CloseDatabaseService()
 }
 
-func (p *couponBaseService) initializeService() {
-	log.Printf("CouponService:: GetBusinessDao ")
+func (p *bannerBaseService) initializeService() {
+	log.Printf("BannerService:: GetBusinessDao ")
 	p.daoBusiness = platform_repository.NewBusinessDao(p.GetClient())
-	p.daoCoupon = sales_repository.NewCouponDao(p.dbRegion.GetClient(), p.businessId)
+	p.daoBanner = sales_repository.NewBannerDao(p.dbRegion.GetClient(), p.businessId)
 }
 
 // List - List All records
-func (p *couponBaseService) List(filter string, sort string, skip int64, limit int64) (utils.Map, error) {
+func (p *bannerBaseService) List(filter string, sort string, skip int64, limit int64) (utils.Map, error) {
 
-	log.Println("CouponBaseService::FindAll - Begin")
+	log.Println("bannerBaseService::FindAll - Begin")
 
-	listdata, err := p.daoCoupon.List(filter, sort, skip, limit)
+	listdata, err := p.daoBanner.List(filter, sort, skip, limit)
 	if err != nil {
 		return nil, err
 	}
 
-	log.Println("CouponBaseService::FindAll - End ")
+	log.Println("bannerBaseService::FindAll - End ")
 	return listdata, nil
 }
 
 // Get - Find By Code
-func (p *couponBaseService) Get(couponId string) (utils.Map, error) {
-	log.Printf("couponBaseService::Get::  Begin %v", couponId)
+func (p *bannerBaseService) Get(bannerId string) (utils.Map, error) {
+	log.Printf("bannerBaseService::Get::  Begin %v", bannerId)
 
-	data, err := p.daoCoupon.Get(couponId)
+	data, err := p.daoBanner.Get(bannerId)
 
-	log.Println("couponBaseService::Get:: End ", err)
+	log.Println("bannerBaseService::Get:: End ", err)
 	return data, err
 }
 
-func (p *couponBaseService) Find(filter string) (utils.Map, error) {
-	fmt.Println("couponBaseService::FindByCode::  Begin ", filter)
+func (p *bannerBaseService) Find(filter string) (utils.Map, error) {
+	fmt.Println("BannerService::FindByCode::  Begin ", filter)
 
-	data, err := p.daoCoupon.Find(filter)
-	log.Println("couponBaseService::FindByCode:: End ", err)
+	data, err := p.daoBanner.Find(filter)
+	log.Println("BannerService::FindByCode:: End ", err)
 	return data, err
 }
 
 // Create - Create Service
-func (p *couponBaseService) Create(indata utils.Map) (utils.Map, error) {
+func (p *bannerBaseService) Create(indata utils.Map) (utils.Map, error) {
 
-	log.Println("CouponService::Create - Begin")
-	var couponId string
+	log.Println("BannerService::Create - Begin")
+	var bannerId string
 
-	dataval, dataok := indata[sales_common.FLD_COUPON_ID]
+	dataval, dataok := indata[sales_common.FLD_BANNER_ID]
 	if dataok {
-		couponId = strings.ToLower(dataval.(string))
+		bannerId = strings.ToLower(dataval.(string))
 	} else {
-		couponId = utils.GenerateUniqueId("coup")
-		log.Println("Unique Coupon ID", couponId)
+		bannerId = utils.GenerateUniqueId("bnr")
+		log.Println("Unique Banner ID", bannerId)
 	}
 
 	// Assign BusinessId
 	indata[sales_common.FLD_BUSINESS_ID] = p.businessId
-	indata[sales_common.FLD_COUPON_ID] = couponId
+	indata[sales_common.FLD_BANNER_ID] = bannerId
 
-	data, err := p.daoCoupon.Create(indata)
+	data, err := p.daoBanner.Create(indata)
 	if err != nil {
 		return utils.Map{}, err
 	}
 
-	log.Println("CouponService::Create - End ")
+	log.Println("BannerService::Create - End ")
 	return data, nil
 }
 
 // Update - Update Service
-func (p *couponBaseService) Update(couponId string, indata utils.Map) (utils.Map, error) {
+func (p *bannerBaseService) Update(bannerId string, indata utils.Map) (utils.Map, error) {
 
-	log.Println("CouponService::Update - Begin")
+	log.Println("BannerService::Update - Begin")
 
-	data, err := p.daoCoupon.Update(couponId, indata)
+	data, err := p.daoBanner.Update(bannerId, indata)
 
-	log.Println("CouponService::Update - End ")
+	log.Println("BannerService::Update - End ")
 	return data, err
 }
 
 // Delete - Delete Service
-func (p *couponBaseService) Delete(couponId string, delete_permanent bool) error {
+func (p *bannerBaseService) Delete(bannerId string, delete_permanent bool) error {
 
-	log.Println("CouponService::Delete - Begin", couponId)
+	log.Println("BannerService::Delete - Begin", bannerId)
 
 	if delete_permanent {
-		result, err := p.daoCoupon.Delete(couponId)
+		result, err := p.daoBanner.Delete(bannerId)
 		if err != nil {
 			return err
 		}
 		log.Printf("Delete %v", result)
 	} else {
 		indata := utils.Map{db_common.FLD_IS_DELETED: true}
-		data, err := p.Update(couponId, indata)
+		data, err := p.Update(bannerId, indata)
 		if err != nil {
 			return err
 		}
 		log.Println("Update for Delete Flag", data)
 	}
 
-	log.Printf("CouponService::Delete - End")
+	log.Printf("BannerService::Delete - End")
 	return nil
 }
 
-func (p *couponBaseService) errorReturn(err error) (CouponService, error) {
+func (p *bannerBaseService) errorReturn(err error) (BannerService, error) {
 	// Close the Database Connection
 	p.EndService()
 	return nil, err

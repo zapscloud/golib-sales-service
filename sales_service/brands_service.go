@@ -1,4 +1,4 @@
-package sales_services
+package sales_service
 
 import (
 	"fmt"
@@ -8,50 +8,51 @@ import (
 	"github.com/zapscloud/golib-dbutils/db_common"
 	"github.com/zapscloud/golib-dbutils/db_utils"
 	"github.com/zapscloud/golib-platform-repository/platform_repository"
-	"github.com/zapscloud/golib-platform-service/platform_service"
+	platform_services "github.com/zapscloud/golib-platform-service/platform_service"
 	"github.com/zapscloud/golib-sales-repository/sales_common"
 	"github.com/zapscloud/golib-sales-repository/sales_repository"
+
 	"github.com/zapscloud/golib-utils/utils"
 )
 
-type QuizService interface {
+type BrandService interface {
 	// List - List All records
 	List(filter string, sort string, skip int64, limit int64) (utils.Map, error)
 	// Get - Find By Code
-	Get(quizId string) (utils.Map, error)
+	Get(brandId string) (utils.Map, error)
 	// Find - Find the item
 	Find(filter string) (utils.Map, error)
 	// Create - Create Service
 	Create(indata utils.Map) (utils.Map, error)
 	// Update - Update Service
-	Update(quizId string, indata utils.Map) (utils.Map, error)
+	Update(brandId string, indata utils.Map) (utils.Map, error)
 	// Delete - Delete Service
-	Delete(quizId string, delete_permanent bool) error
+	Delete(brandId string, delete_permanent bool) error
 
 	EndService()
 }
 
-type quizBaseService struct {
+type brandBaseService struct {
 	db_utils.DatabaseService
 	dbRegion    db_utils.DatabaseService
-	daoQuiz     sales_repository.QuizDao
+	daoBrand    sales_repository.BrandDao
 	daoBusiness platform_repository.BusinessDao
-	child       QuizService
+	child       BrandService
 	businessId  string
 }
 
-// NewQuizService - Construct Quiz
-func NewQuizService(props utils.Map) (QuizService, error) {
+// NewBrandService - Construct Brand
+func NewBrandService(props utils.Map) (BrandService, error) {
 	funcode := sales_common.GetServiceModuleCode() + "M" + "01"
 
-	log.Printf("QuizService::Start ")
+	log.Printf("BrandService::Start ")
 	// Verify whether the business id data passed
 	businessId, err := utils.GetMemberDataStr(props, sales_common.FLD_BUSINESS_ID)
 	if err != nil {
 		return nil, err
 	}
 
-	p := quizBaseService{}
+	p := brandBaseService{}
 	// Open Database Service
 	err = p.OpenDatabaseService(props)
 	if err != nil {
@@ -83,114 +84,114 @@ func NewQuizService(props utils.Map) (QuizService, error) {
 	return &p, err
 }
 
-// quizBaseService - Close all the services
-func (p *quizBaseService) EndService() {
+// brandsBaseService - Close all the services
+func (p *brandBaseService) EndService() {
 	log.Printf("EndService ")
 	p.CloseDatabaseService()
 	p.dbRegion.CloseDatabaseService()
 }
 
-func (p *quizBaseService) initializeService() {
-	log.Printf("QuizService:: GetBusinessDao ")
+func (p *brandBaseService) initializeService() {
+	log.Printf("BrandService:: GetBusinessDao ")
 	p.daoBusiness = platform_repository.NewBusinessDao(p.GetClient())
-	p.daoQuiz = sales_repository.NewQuizDao(p.GetClient(), p.businessId)
+	p.daoBrand = sales_repository.NewBrandDao(p.dbRegion.GetClient(), p.businessId)
 }
 
 // List - List All records
-func (p *quizBaseService) List(filter string, sort string, skip int64, limit int64) (utils.Map, error) {
+func (p *brandBaseService) List(filter string, sort string, skip int64, limit int64) (utils.Map, error) {
 
-	log.Println("quizBaseService::FindAll - Begin")
+	log.Println("brandBaseService::FindAll - Begin")
 
-	listdata, err := p.daoQuiz.List(filter, sort, skip, limit)
+	listdata, err := p.daoBrand.List(filter, sort, skip, limit)
 	if err != nil {
 		return nil, err
 	}
 
-	log.Println("quizBaseService::FindAll - End ")
+	log.Println("brandBaseService::FindAll - End ")
 	return listdata, nil
 }
 
 // Get - Find By Code
-func (p *quizBaseService) Get(quizId string) (utils.Map, error) {
-	log.Printf("quizBaseService::Get::  Begin %v", quizId)
+func (p *brandBaseService) Get(brandId string) (utils.Map, error) {
+	log.Printf("brandBaseService::Get::  Begin %v", brandId)
 
-	data, err := p.daoQuiz.Get(quizId)
+	data, err := p.daoBrand.Get(brandId)
 
-	log.Println("quizBaseService::Get:: End ", err)
+	log.Println("brandBaseService::Get:: End ", err)
 	return data, err
 }
 
-func (p *quizBaseService) Find(filter string) (utils.Map, error) {
-	fmt.Println("QuizService::FindByCode::  Begin ", filter)
+func (p *brandBaseService) Find(filter string) (utils.Map, error) {
+	fmt.Println("brandService::FindByCode::  Begin ", filter)
 
-	data, err := p.daoQuiz.Find(filter)
-	log.Println("QuizService::FindByCode:: End ", err)
+	data, err := p.daoBrand.Find(filter)
+	log.Println("brandService::FindByCode:: End ", err)
 	return data, err
 }
 
 // Create - Create Service
-func (p *quizBaseService) Create(indata utils.Map) (utils.Map, error) {
+func (p *brandBaseService) Create(indata utils.Map) (utils.Map, error) {
 
-	log.Println("QuizService::Create - Begin")
-	var quizId string
+	log.Println("BrandService::Create - Begin")
+	var brandId string
 
-	dataval, dataok := indata[sales_common.FLD_QUIZ_ID]
+	dataval, dataok := indata[sales_common.FLD_BRAND_ID]
 	if dataok {
-		quizId = strings.ToLower(dataval.(string))
+		brandId = strings.ToLower(dataval.(string))
 	} else {
-		quizId = utils.GenerateUniqueId("quiz")
-		log.Println("Unique Quiz ID", quizId)
+		brandId = utils.GenerateUniqueId("brnd")
+		log.Println("Unique Brand ID", brandId)
 	}
 
 	// Assign BusinessId
 	indata[sales_common.FLD_BUSINESS_ID] = p.businessId
-	indata[sales_common.FLD_QUIZ_ID] = quizId
+	indata[sales_common.FLD_BRAND_ID] = brandId
 
-	data, err := p.daoQuiz.Create(indata)
+	data, err := p.daoBrand.Create(indata)
 	if err != nil {
 		return utils.Map{}, err
 	}
 
-	log.Println("QuizService::Create - End ")
+	log.Println("BrandService::Create - End ")
 	return data, nil
 }
 
 // Update - Update Service
-func (p *quizBaseService) Update(quizId string, indata utils.Map) (utils.Map, error) {
+func (p *brandBaseService) Update(brandId string, indata utils.Map) (utils.Map, error) {
 
-	log.Println("QuizService::Update - Begin")
+	log.Println("BrandService::Update - Begin")
 
-	data, err := p.daoQuiz.Update(quizId, indata)
+	data, err := p.daoBrand.Update(brandId, indata)
 
-	log.Println("QuizService::Update - End ")
+	log.Println("BrandService::Update - End ")
 	return data, err
 }
 
 // Delete - Delete Service
-func (p *quizBaseService) Delete(quizId string, delete_permanent bool) error {
+func (p *brandBaseService) Delete(brandId string, delete_permanent bool) error {
 
-	log.Println("QuizService::Delete - Begin", quizId)
+	log.Println("BrandService::Delete - Begin", brandId)
 
 	if delete_permanent {
-		result, err := p.daoQuiz.Delete(quizId)
+		result, err := p.daoBrand.Delete(brandId)
 		if err != nil {
 			return err
 		}
 		log.Printf("Delete %v", result)
 	} else {
 		indata := utils.Map{db_common.FLD_IS_DELETED: true}
-		data, err := p.Update(quizId, indata)
+		data, err := p.Update(brandId, indata)
 		if err != nil {
 			return err
 		}
 		log.Println("Update for Delete Flag", data)
 	}
 
-	log.Printf("QuizService::Delete - End")
+	log.Printf("BrandService::Delete - End")
 	return nil
 }
 
-func (p *quizBaseService) errorReturn(err error) (QuizService, error) {
+func (p *brandBaseService) errorReturn(err error) (BrandService, error) {
 	// Close the Database Connection
 	p.EndService()
 	return nil, err

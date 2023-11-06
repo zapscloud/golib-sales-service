@@ -1,4 +1,4 @@
-package sales_services
+package sales_service
 
 import (
 	"fmt"
@@ -62,7 +62,7 @@ func NewCatalogueService(props utils.Map) (CatalogueService, error) {
 	}
 
 	// Open RegionDB Service
-	p.dbRegion, err = platform_services.OpenRegionDatabaseService(props)
+	p.dbRegion, err = platform_service.OpenRegionDatabaseService(props)
 	if err != nil {
 		p.CloseDatabaseService()
 		return nil, err

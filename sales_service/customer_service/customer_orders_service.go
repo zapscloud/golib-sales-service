@@ -12,51 +12,50 @@ import (
 	"github.com/zapscloud/golib-sales-repository/sales_common"
 	"github.com/zapscloud/golib-sales-repository/sales_repository"
 	"github.com/zapscloud/golib-sales-repository/sales_repository/customer_repository"
-
 	"github.com/zapscloud/golib-utils/utils"
 )
 
-type CustomerReviewService interface {
+type CustomerOrderService interface {
 	// List - List All records
 	List(filter string, sort string, skip int64, limit int64) (utils.Map, error)
 	// Get - Find By Code
-	Get(reviewId string) (utils.Map, error)
+	Get(customerOrderId string) (utils.Map, error)
 	// Find - Find the item
 	Find(filter string) (utils.Map, error)
 	// Create - Create Service
 	Create(indata utils.Map) (utils.Map, error)
 	// Update - Update Service
-	Update(reviewId string, indata utils.Map) (utils.Map, error)
+	Update(bcustomerOrderId string, indata utils.Map) (utils.Map, error)
 	// Delete - Delete Service
-	Delete(reviewId string, delete_permanent bool) error
+	Delete(customerOrderId string, delete_permanent bool) error
 
 	EndService()
 }
 
-type customerReviewBaseService struct {
+type customerOrderBaseService struct {
 	db_utils.DatabaseService
-	dbRegion          db_utils.DatabaseService
-	daoCustomerReview customer_repository.CustomerReviewDao
-	daoBusiness       platform_repository.BusinessDao
-	daoCustomer       sales_repository.CustomerDao
+	dbRegion         db_utils.DatabaseService
+	daoCustomerOrder customer_repository.CustomerOrderDao
+	daoBusiness      platform_repository.BusinessDao
+	daoCustomer      sales_repository.CustomerDao
 
-	child      CustomerReviewService
+	child      CustomerOrderService
 	businessId string
 	customerId string
 }
 
-// NewCustomerReviewService - Construct CustomerReview
-func NewCustomerReviewService(props utils.Map) (CustomerReviewService, error) {
+// NewCustomerOrderService - Construct CustomerOrder
+func NewCustomerOrderService(props utils.Map) (CustomerOrderService, error) {
 	funcode := sales_common.GetServiceModuleCode() + "M" + "01"
 
-	log.Printf("CustomerReviewService::Start ")
+	log.Printf("CustomerOrderService::Start ")
 	// Verify whether the business id data passed
 	businessId, err := utils.GetMemberDataStr(props, sales_common.FLD_BUSINESS_ID)
 	if err != nil {
 		return nil, err
 	}
 
-	p := customerReviewBaseService{}
+	p := customerOrderBaseService{}
 	// Open Database Service
 	err = p.OpenDatabaseService(props)
 	if err != nil {
@@ -64,7 +63,7 @@ func NewCustomerReviewService(props utils.Map) (CustomerReviewService, error) {
 	}
 
 	// Open RegionDB Service
-	p.dbRegion, err = platform_services.OpenRegionDatabaseService(props)
+	p.dbRegion, err = platform_service.OpenRegionDatabaseService(props)
 	if err != nil {
 		p.CloseDatabaseService()
 		return nil, err
@@ -81,6 +80,7 @@ func NewCustomerReviewService(props utils.Map) (CustomerReviewService, error) {
 	p.customerId = customerId
 	p.initializeService()
 
+	// Verify the Business Exists
 	_, err = p.daoBusiness.Get(businessId)
 	if err != nil {
 		err := &utils.AppError{
@@ -107,121 +107,121 @@ func NewCustomerReviewService(props utils.Map) (CustomerReviewService, error) {
 	return &p, err
 }
 
-// customerReviewBaseService - Close all the services
-func (p *customerReviewBaseService) EndService() {
+// customerOrderBaseService - Close all the services
+func (p *customerOrderBaseService) EndService() {
 	log.Printf("EndService ")
 	p.CloseDatabaseService()
 	p.dbRegion.CloseDatabaseService()
 }
 
-func (p *customerReviewBaseService) initializeService() {
-	log.Printf("CustomerReviewService:: GetBusinessDao ")
+func (p *customerOrderBaseService) initializeService() {
+	log.Printf("customerOrderBaseService:: GetBusinessDao ")
 	p.daoBusiness = platform_repository.NewBusinessDao(p.GetClient())
 	p.daoCustomer = sales_repository.NewCustomerDao(p.dbRegion.GetClient(), p.businessId)
-	p.daoCustomerReview = customer_repository.NewCustomerReviewDao(p.GetClient(), p.businessId, p.customerId)
+	p.daoCustomerOrder = customer_repository.NewCustomerOrderDao(p.GetClient(), p.businessId, p.customerId)
 }
 
 // List - List All records
-func (p *customerReviewBaseService) List(filter string, sort string, skip int64, limit int64) (utils.Map, error) {
+func (p *customerOrderBaseService) List(filter string, sort string, skip int64, limit int64) (utils.Map, error) {
 
-	log.Println("customerReviewBaseService::FindAll - Begin")
+	log.Println("customerOrderBaseService::FindAll - Begin")
 
-	listdata, err := p.daoCustomerReview.List(filter, sort, skip, limit)
+	listdata, err := p.daoCustomerOrder.List(filter, sort, skip, limit)
 	if err != nil {
 		return nil, err
 	}
 
-	log.Println("customerReviewBaseService::FindAll - End ")
+	log.Println("customerOrderBaseService::FindAll - End ")
 	return listdata, nil
 }
 
 // Get - Find By Code
-func (p *customerReviewBaseService) Get(reviewId string) (utils.Map, error) {
-	log.Printf("customerReviewBaseService::Get::  Begin %v", reviewId)
+func (p *customerOrderBaseService) Get(custOrderId string) (utils.Map, error) {
+	log.Printf("customerOrderBaseService::Get::  Begin %v", custOrderId)
 
-	data, err := p.daoCustomerReview.Get(reviewId)
+	data, err := p.daoCustomerOrder.Get(custOrderId)
 
-	log.Println("customerReviewBaseService::Get:: End ", err)
+	log.Println("customerOrderBaseService::Get:: End ", err)
 	return data, err
 }
 
-func (p *customerReviewBaseService) Find(filter string) (utils.Map, error) {
-	fmt.Println("customerReviewBaseService::FindByCode::  Begin ", filter)
+func (p *customerOrderBaseService) Find(filter string) (utils.Map, error) {
+	fmt.Println("customerOrderBaseService::FindByCode::  Begin ", filter)
 
-	data, err := p.daoCustomerReview.Find(filter)
-	log.Println("customerReviewBaseService::FindByCode:: End ", err)
+	data, err := p.daoCustomerOrder.Find(filter)
+	log.Println("customerOrderBaseService::FindByCode:: End ", err)
 	return data, err
 }
 
 // Create - Create Service
-func (p *customerReviewBaseService) Create(indata utils.Map) (utils.Map, error) {
+func (p *customerOrderBaseService) Create(indata utils.Map) (utils.Map, error) {
 
-	log.Println("CustomerReviewService::Create - Begin")
-	var reviewId string
+	log.Println("customerOrderBaseService::Create - Begin")
+	var custOrderId string
 
-	dataval, dataok := indata[sales_common.FLD_REVIEW_ID]
+	dataval, dataok := indata[sales_common.FLD_CUSTOMER_ORDER_ID]
 	if dataok {
-		reviewId = strings.ToLower(dataval.(string))
+		custOrderId = strings.ToLower(dataval.(string))
 	} else {
-		reviewId = utils.GenerateUniqueId("reviw")
-		log.Println("Unique CustomerReview ID", reviewId)
+		custOrderId = utils.GenerateUniqueId("cust_order")
+		log.Println("Unique customerOrder ID", custOrderId)
 	}
 
 	// Assign BusinessId
 	indata[sales_common.FLD_BUSINESS_ID] = p.businessId
 	indata[sales_common.FLD_CUSTOMER_ID] = p.customerId
-	indata[sales_common.FLD_REVIEW_ID] = reviewId
+	indata[sales_common.FLD_CUSTOMER_ORDER_ID] = custOrderId
 
-	data, err := p.daoCustomerReview.Create(indata)
+	data, err := p.daoCustomerOrder.Create(indata)
 	if err != nil {
 		return utils.Map{}, err
 	}
 
-	log.Println("CustomerReviewService::Create - End ")
+	log.Println("customerOrderBaseService::Create - End ")
 	return data, nil
 }
 
 // Update - Update Service
-func (p *customerReviewBaseService) Update(reviewId string, indata utils.Map) (utils.Map, error) {
+func (p *customerOrderBaseService) Update(custOrderId string, indata utils.Map) (utils.Map, error) {
 
-	log.Println("CustomerReviewService::Update - Begin")
+	log.Println("customerOrderService::Update - Begin")
 
 	// Delete Key values
 	delete(indata, sales_common.FLD_BUSINESS_ID)
 	delete(indata, sales_common.FLD_CUSTOMER_ID)
-	delete(indata, sales_common.FLD_REVIEW_ID)
+	delete(indata, sales_common.FLD_CUSTOMER_ORDER_ID)
 
-	data, err := p.daoCustomerReview.Update(reviewId, indata)
+	data, err := p.daoCustomerOrder.Update(custOrderId, indata)
 
-	log.Println("CustomerReviewService::Update - End ")
+	log.Println("customerOrderService::Update - End ")
 	return data, err
 }
 
 // Delete - Delete Service
-func (p *customerReviewBaseService) Delete(reviewId string, delete_permanent bool) error {
+func (p *customerOrderBaseService) Delete(custOrderId string, delete_permanent bool) error {
 
-	log.Println("CustomerReviewService::Delete - Begin", reviewId)
+	log.Println("customerOrderService::Delete - Begin", custOrderId)
 
 	if delete_permanent {
-		result, err := p.daoCustomerReview.Delete(reviewId)
+		result, err := p.daoCustomerOrder.Delete(custOrderId)
 		if err != nil {
 			return err
 		}
 		log.Printf("Delete %v", result)
 	} else {
 		indata := utils.Map{db_common.FLD_IS_DELETED: true}
-		data, err := p.Update(reviewId, indata)
+		data, err := p.Update(custOrderId, indata)
 		if err != nil {
 			return err
 		}
 		log.Println("Update for Delete Flag", data)
 	}
 
-	log.Printf("CustomerReviewService::Delete - End")
+	log.Printf("customerOrderService::Delete - End")
 	return nil
 }
 
-func (p *customerReviewBaseService) errorReturn(err error) (CustomerReviewService, error) {
+func (p *customerOrderBaseService) errorReturn(err error) (CustomerOrderService, error) {
 	// Close the Database Connection
 	p.EndService()
 	return nil, err

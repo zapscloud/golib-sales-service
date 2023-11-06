@@ -1,12 +1,12 @@
-module github.com/zapscloud/golib-sales-services
+module github.com/zapscloud/golib-sales-service
 
 go 1.20
 
 require (
 	github.com/zapscloud/golib-auth v1.0.1-0.20231016135600-058e61695557
 	github.com/zapscloud/golib-dbutils v1.1.1-0.20231016071702-b6e244391427
-	github.com/zapscloud/golib-platform-repository v0.0.0-20231031103720-b9f32a0e966a
-	github.com/zapscloud/golib-platform-service v0.0.0-20231031104525-f578988c4830
+	github.com/zapscloud/golib-platform-repository v0.0.0-20231104045312-797a30003891
+	github.com/zapscloud/golib-platform-service v0.0.0-20231104052444-07da4e75a984
 	github.com/zapscloud/golib-sales-repository v0.0.0-20231102081328-bf1e36338b0a
 	github.com/zapscloud/golib-utils v1.0.1-0.20231013125100-bb65f5737443
 

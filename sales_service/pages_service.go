@@ -1,4 +1,4 @@
-package sales_services
+package sales_service
 
 import (
 	"fmt"
@@ -11,47 +11,48 @@ import (
 	"github.com/zapscloud/golib-platform-service/platform_service"
 	"github.com/zapscloud/golib-sales-repository/sales_common"
 	"github.com/zapscloud/golib-sales-repository/sales_repository"
+
 	"github.com/zapscloud/golib-utils/utils"
 )
 
-type RegionService interface {
+type PageService interface {
 	// List - List All records
 	List(filter string, sort string, skip int64, limit int64) (utils.Map, error)
 	// Get - Find By Code
-	Get(regionId string) (utils.Map, error)
+	Get(pageId string) (utils.Map, error)
 	// Find - Find the item
 	Find(filter string) (utils.Map, error)
 	// Create - Create Service
 	Create(indata utils.Map) (utils.Map, error)
 	// Update - Update Service
-	Update(regionId string, indata utils.Map) (utils.Map, error)
+	Update(pageId string, indata utils.Map) (utils.Map, error)
 	// Delete - Delete Service
-	Delete(regionId string, delete_permanent bool) error
+	Delete(pageId string, delete_permanent bool) error
 
 	EndService()
 }
 
-type regionBaseService struct {
+type pageBaseService struct {
 	db_utils.DatabaseService
 	dbRegion    db_utils.DatabaseService
-	daoRegion   sales_repository.RegionDao
+	daoPage     sales_repository.PageDao
 	daoBusiness platform_repository.BusinessDao
-	child       RegionService
+	child       PageService
 	businessId  string
 }
 
-// NewRegionService - Construct Region
-func NewRegionService(props utils.Map) (RegionService, error) {
+// NewPageService - Construct Page
+func NewPageService(props utils.Map) (PageService, error) {
 	funcode := sales_common.GetServiceModuleCode() + "M" + "01"
 
-	log.Printf("RegionService::Start ")
+	log.Printf("PageService::Start ")
 	// Verify whether the business id data passed
 	businessId, err := utils.GetMemberDataStr(props, sales_common.FLD_BUSINESS_ID)
 	if err != nil {
 		return nil, err
 	}
 
-	p := regionBaseService{}
+	p := pageBaseService{}
 	// Open Database Service
 	err = p.OpenDatabaseService(props)
 	if err != nil {
@@ -59,7 +60,7 @@ func NewRegionService(props utils.Map) (RegionService, error) {
 	}
 
 	// Open RegionDB Service
-	p.dbRegion, err = platform_services.OpenRegionDatabaseService(props)
+	p.dbRegion, err = platform_service.OpenRegionDatabaseService(props)
 	if err != nil {
 		p.CloseDatabaseService()
 		return nil, err
@@ -83,114 +84,114 @@ func NewRegionService(props utils.Map) (RegionService, error) {
 	return &p, err
 }
 
-// regionBaseService - Close all the services
-func (p *regionBaseService) EndService() {
+// pagesBaseService - Close all the services
+func (p *pageBaseService) EndService() {
 	log.Printf("EndService ")
 	p.CloseDatabaseService()
 	p.dbRegion.CloseDatabaseService()
 }
 
-func (p *regionBaseService) initializeService() {
-	log.Printf("RegionService:: GetBusinessDao ")
+func (p *pageBaseService) initializeService() {
+	log.Printf("PageService:: GetBusinessDao ")
 	p.daoBusiness = platform_repository.NewBusinessDao(p.GetClient())
-	p.daoRegion = sales_repository.NewRegionDao(p.dbRegion.GetClient(), p.businessId)
+	p.daoPage = sales_repository.NewPageDao(p.dbRegion.GetClient(), p.businessId)
 }
 
 // List - List All records
-func (p *regionBaseService) List(filter string, sort string, skip int64, limit int64) (utils.Map, error) {
+func (p *pageBaseService) List(filter string, sort string, skip int64, limit int64) (utils.Map, error) {
 
-	log.Println("regionBaseService::FindAll - Begin")
+	log.Println("pageBaseService::FindAll - Begin")
 
-	listdata, err := p.daoRegion.List(filter, sort, skip, limit)
+	listdata, err := p.daoPage.List(filter, sort, skip, limit)
 	if err != nil {
 		return nil, err
 	}
 
-	log.Println("regionBaseService::FindAll - End ")
+	log.Println("pageBaseService::FindAll - End ")
 	return listdata, nil
 }
 
 // Get - Find By Code
-func (p *regionBaseService) Get(regionId string) (utils.Map, error) {
-	log.Printf("regionBaseService::Get::  Begin %v", regionId)
+func (p *pageBaseService) Get(pageId string) (utils.Map, error) {
+	log.Printf("pageBaseService::Get::  Begin %v", pageId)
 
-	data, err := p.daoRegion.Get(regionId)
+	data, err := p.daoPage.Get(pageId)
 
-	log.Println("regionBaseService::Get:: End ", err)
+	log.Println("pageBaseService::Get:: End ", err)
 	return data, err
 }
 
-func (p *regionBaseService) Find(filter string) (utils.Map, error) {
-	fmt.Println("RegionService::FindByCode::  Begin ", filter)
+func (p *pageBaseService) Find(filter string) (utils.Map, error) {
+	fmt.Println("pageBaseService::FindByCode::  Begin ", filter)
 
-	data, err := p.daoRegion.Find(filter)
-	log.Println("RegionService::FindByCode:: End ", err)
+	data, err := p.daoPage.Find(filter)
+	log.Println("pageBaseService::FindByCode:: End ", err)
 	return data, err
 }
 
 // Create - Create Service
-func (p *regionBaseService) Create(indata utils.Map) (utils.Map, error) {
+func (p *pageBaseService) Create(indata utils.Map) (utils.Map, error) {
 
-	log.Println("RegionService::Create - Begin")
-	var regionId string
+	log.Println("PageService::Create - Begin")
+	var pageId string
 
-	dataval, dataok := indata[sales_common.FLD_REGION_ID]
+	dataval, dataok := indata[sales_common.FLD_PAGE_ID]
 	if dataok {
-		regionId = strings.ToLower(dataval.(string))
+		pageId = strings.ToLower(dataval.(string))
 	} else {
-		regionId = utils.GenerateUniqueId("rgn")
-		log.Println("Unique Region ID", regionId)
+		pageId = utils.GenerateUniqueId("page")
+		log.Println("Unique Page ID", pageId)
 	}
 
 	// Assign BusinessId
 	indata[sales_common.FLD_BUSINESS_ID] = p.businessId
-	indata[sales_common.FLD_REGION_ID] = regionId
+	indata[sales_common.FLD_PAGE_ID] = pageId
 
-	data, err := p.daoRegion.Create(indata)
+	data, err := p.daoPage.Create(indata)
 	if err != nil {
 		return utils.Map{}, err
 	}
 
-	log.Println("RegionService::Create - End ")
+	log.Println("PageService::Create - End ")
 	return data, nil
 }
 
 // Update - Update Service
-func (p *regionBaseService) Update(regionId string, indata utils.Map) (utils.Map, error) {
+func (p *pageBaseService) Update(pageId string, indata utils.Map) (utils.Map, error) {
 
-	log.Println("RegionService::Update - Begin")
+	log.Println("PageService::Update - Begin")
 
-	data, err := p.daoRegion.Update(regionId, indata)
+	data, err := p.daoPage.Update(pageId, indata)
 
-	log.Println("RegionService::Update - End ")
+	log.Println("PageService::Update - End ")
 	return data, err
 }
 
 // Delete - Delete Service
-func (p *regionBaseService) Delete(regionId string, delete_permanent bool) error {
+func (p *pageBaseService) Delete(pageId string, delete_permanent bool) error {
 
-	log.Println("RegionService::Delete - Begin", regionId)
+	log.Println("PageService::Delete - Begin", pageId)
 
 	if delete_permanent {
-		result, err := p.daoRegion.Delete(regionId)
+		result, err := p.daoPage.Delete(pageId)
 		if err != nil {
 			return err
 		}
 		log.Printf("Delete %v", result)
 	} else {
 		indata := utils.Map{db_common.FLD_IS_DELETED: true}
-		data, err := p.Update(regionId, indata)
+		data, err := p.Update(pageId, indata)
 		if err != nil {
 			return err
 		}
 		log.Println("Update for Delete Flag", data)
 	}
 
-	log.Printf("RegionService::Delete - End")
+	log.Printf("PageService::Delete - End")
 	return nil
 }
 
-func (p *regionBaseService) errorReturn(err error) (RegionService, error) {
+func (p *pageBaseService) errorReturn(err error) (PageService, error) {
 	// Close the Database Connection
 	p.EndService()
 	return nil, err

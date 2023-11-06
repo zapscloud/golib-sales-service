@@ -1,4 +1,4 @@
-package sales_services
+package sales_service
 
 import (
 	"fmt"
@@ -14,44 +14,44 @@ import (
 	"github.com/zapscloud/golib-utils/utils"
 )
 
-type BlogService interface {
+type CouponService interface {
 	// List - List All records
 	List(filter string, sort string, skip int64, limit int64) (utils.Map, error)
 	// Get - Find By Code
-	Get(blogId string) (utils.Map, error)
+	Get(couponId string) (utils.Map, error)
 	// Find - Find the item
 	Find(filter string) (utils.Map, error)
 	// Create - Create Service
 	Create(indata utils.Map) (utils.Map, error)
 	// Update - Update Service
-	Update(blogId string, indata utils.Map) (utils.Map, error)
+	Update(couponId string, indata utils.Map) (utils.Map, error)
 	// Delete - Delete Service
-	Delete(blogId string, delete_permanent bool) error
+	Delete(couponId string, delete_permanent bool) error
 
 	EndService()
 }
 
-type blogBaseService struct {
+type couponBaseService struct {
 	db_utils.DatabaseService
 	dbRegion    db_utils.DatabaseService
-	daoBlog     sales_repository.BlogDao
+	daoCoupon   sales_repository.CouponDao
 	daoBusiness platform_repository.BusinessDao
-	child       BlogService
+	child       CouponService
 	businessId  string
 }
 
-// NewBlogService - Construct Blog
-func NewBlogService(props utils.Map) (BlogService, error) {
+// NewCouponService - Construct Coupon
+func NewCouponService(props utils.Map) (CouponService, error) {
 	funcode := sales_common.GetServiceModuleCode() + "M" + "01"
 
-	log.Printf("BlogService::Start ")
+	log.Printf("CouponService::Start ")
 	// Verify whether the business id data passed
 	businessId, err := utils.GetMemberDataStr(props, sales_common.FLD_BUSINESS_ID)
 	if err != nil {
 		return nil, err
 	}
 
-	p := blogBaseService{}
+	p := couponBaseService{}
 	// Open Database Service
 	err = p.OpenDatabaseService(props)
 	if err != nil {
@@ -59,7 +59,7 @@ func NewBlogService(props utils.Map) (BlogService, error) {
 	}
 
 	// Open RegionDB Service
-	p.dbRegion, err = platform_services.OpenRegionDatabaseService(props)
+	p.dbRegion, err = platform_service.OpenRegionDatabaseService(props)
 	if err != nil {
 		p.CloseDatabaseService()
 		return nil, err
@@ -83,114 +83,114 @@ func NewBlogService(props utils.Map) (BlogService, error) {
 	return &p, err
 }
 
-// blogBaseService - Close all the services
-func (p *blogBaseService) EndService() {
+// couponBaseService - Close all the services
+func (p *couponBaseService) EndService() {
 	log.Printf("EndService ")
 	p.CloseDatabaseService()
 	p.dbRegion.CloseDatabaseService()
 }
 
-func (p *blogBaseService) initializeService() {
-	log.Printf("BlogService:: GetBusinessDao ")
+func (p *couponBaseService) initializeService() {
+	log.Printf("CouponService:: GetBusinessDao ")
 	p.daoBusiness = platform_repository.NewBusinessDao(p.GetClient())
-	p.daoBlog = sales_repository.NewBlogDao(p.dbRegion.GetClient(), p.businessId)
+	p.daoCoupon = sales_repository.NewCouponDao(p.dbRegion.GetClient(), p.businessId)
 }
 
 // List - List All records
-func (p *blogBaseService) List(filter string, sort string, skip int64, limit int64) (utils.Map, error) {
+func (p *couponBaseService) List(filter string, sort string, skip int64, limit int64) (utils.Map, error) {
 
-	log.Println("blogBaseService::FindAll - Begin")
+	log.Println("CouponBaseService::FindAll - Begin")
 
-	listdata, err := p.daoBlog.List(filter, sort, skip, limit)
+	listdata, err := p.daoCoupon.List(filter, sort, skip, limit)
 	if err != nil {
 		return nil, err
 	}
 
-	log.Println("blogBaseService::FindAll - End ")
+	log.Println("CouponBaseService::FindAll - End ")
 	return listdata, nil
 }
 
 // Get - Find By Code
-func (p *blogBaseService) Get(blogId string) (utils.Map, error) {
-	log.Printf("blogBaseService::Get::  Begin %v", blogId)
+func (p *couponBaseService) Get(couponId string) (utils.Map, error) {
+	log.Printf("couponBaseService::Get::  Begin %v", couponId)
 
-	data, err := p.daoBlog.Get(blogId)
+	data, err := p.daoCoupon.Get(couponId)
 
-	log.Println("blogBaseService::Get:: End ", err)
+	log.Println("couponBaseService::Get:: End ", err)
 	return data, err
 }
 
-func (p *blogBaseService) Find(filter string) (utils.Map, error) {
-	fmt.Println("BlogService::FindByCode::  Begin ", filter)
+func (p *couponBaseService) Find(filter string) (utils.Map, error) {
+	fmt.Println("couponBaseService::FindByCode::  Begin ", filter)
 
-	data, err := p.daoBlog.Find(filter)
-	log.Println("BlogService::FindByCode:: End ", err)
+	data, err := p.daoCoupon.Find(filter)
+	log.Println("couponBaseService::FindByCode:: End ", err)
 	return data, err
 }
 
 // Create - Create Service
-func (p *blogBaseService) Create(indata utils.Map) (utils.Map, error) {
+func (p *couponBaseService) Create(indata utils.Map) (utils.Map, error) {
 
-	log.Println("BlogService::Create - Begin")
-	var blogId string
+	log.Println("CouponService::Create - Begin")
+	var couponId string
 
-	dataval, dataok := indata[sales_common.FLD_BLOG_ID]
+	dataval, dataok := indata[sales_common.FLD_COUPON_ID]
 	if dataok {
-		blogId = strings.ToLower(dataval.(string))
+		couponId = strings.ToLower(dataval.(string))
 	} else {
-		blogId = utils.GenerateUniqueId("blo")
-		log.Println("Unique Blog ID", blogId)
+		couponId = utils.GenerateUniqueId("coup")
+		log.Println("Unique Coupon ID", couponId)
 	}
 
 	// Assign BusinessId
 	indata[sales_common.FLD_BUSINESS_ID] = p.businessId
-	indata[sales_common.FLD_BLOG_ID] = blogId
+	indata[sales_common.FLD_COUPON_ID] = couponId
 
-	data, err := p.daoBlog.Create(indata)
+	data, err := p.daoCoupon.Create(indata)
 	if err != nil {
 		return utils.Map{}, err
 	}
 
-	log.Println("BlogService::Create - End ")
+	log.Println("CouponService::Create - End ")
 	return data, nil
 }
 
 // Update - Update Service
-func (p *blogBaseService) Update(blogId string, indata utils.Map) (utils.Map, error) {
+func (p *couponBaseService) Update(couponId string, indata utils.Map) (utils.Map, error) {
 
-	log.Println("BlogService::Update - Begin")
+	log.Println("CouponService::Update - Begin")
 
-	data, err := p.daoBlog.Update(blogId, indata)
+	data, err := p.daoCoupon.Update(couponId, indata)
 
-	log.Println("BlogService::Update - End ")
+	log.Println("CouponService::Update - End ")
 	return data, err
 }
 
 // Delete - Delete Service
-func (p *blogBaseService) Delete(blogId string, delete_permanent bool) error {
+func (p *couponBaseService) Delete(couponId string, delete_permanent bool) error {
 
-	log.Println("BlogService::Delete - Begin", blogId)
+	log.Println("CouponService::Delete - Begin", couponId)
 
 	if delete_permanent {
-		result, err := p.daoBlog.Delete(blogId)
+		result, err := p.daoCoupon.Delete(couponId)
 		if err != nil {
 			return err
 		}
 		log.Printf("Delete %v", result)
 	} else {
 		indata := utils.Map{db_common.FLD_IS_DELETED: true}
-		data, err := p.Update(blogId, indata)
+		data, err := p.Update(couponId, indata)
 		if err != nil {
 			return err
 		}
 		log.Println("Update for Delete Flag", data)
 	}
 
-	log.Printf("BlogService::Delete - End")
+	log.Printf("CouponService::Delete - End")
 	return nil
 }
 
-func (p *blogBaseService) errorReturn(err error) (BlogService, error) {
+func (p *couponBaseService) errorReturn(err error) (CouponService, error) {
 	// Close the Database Connection
 	p.EndService()
 	return nil, err
