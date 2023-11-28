@@ -83,7 +83,7 @@ func NewDealerService(props utils.Map) (DealerService, error) {
 	return &p, err
 }
 
-// dealerBaseService - Close all the services
+// dealerBaseService - Close all the service
 func (p *dealerBaseService) EndService() {
 	log.Printf("EndService ")
 	p.CloseDatabaseService()

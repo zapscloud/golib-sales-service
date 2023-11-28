@@ -83,7 +83,7 @@ func NewBlogService(props utils.Map) (BlogService, error) {
 	return &p, err
 }
 
-// blogBaseService - Close all the services
+// blogBaseService - Close all the service
 func (p *blogBaseService) EndService() {
 	log.Printf("EndService ")
 	p.CloseDatabaseService()

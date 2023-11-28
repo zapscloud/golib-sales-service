@@ -83,7 +83,7 @@ func NewBannerService(props utils.Map) (BannerService, error) {
 	return &p, err
 }
 
-// BannerBaseService - Close all the services
+// BannerBaseService - Close all the service
 func (p *bannerBaseService) EndService() {
 	log.Printf("EndService ")
 	p.CloseDatabaseService()

@@ -8,7 +8,7 @@ import (
 	"github.com/zapscloud/golib-dbutils/db_common"
 	"github.com/zapscloud/golib-dbutils/db_utils"
 	"github.com/zapscloud/golib-platform-repository/platform_repository"
-	platform_services "github.com/zapscloud/golib-platform-service/platform_service"
+	"github.com/zapscloud/golib-platform-service/platform_service"
 	"github.com/zapscloud/golib-sales-repository/sales_common"
 	"github.com/zapscloud/golib-sales-repository/sales_repository"
 
@@ -60,7 +60,7 @@ func NewBrandService(props utils.Map) (BrandService, error) {
 	}
 
 	// Open RegionDB Service
-	p.dbRegion, err = platform_services.OpenRegionDatabaseService(props)
+	p.dbRegion, err = platform_service.OpenRegionDatabaseService(props)
 	if err != nil {
 		p.CloseDatabaseService()
 		return nil, err
@@ -84,7 +84,7 @@ func NewBrandService(props utils.Map) (BrandService, error) {
 	return &p, err
 }
 
-// brandsBaseService - Close all the services
+// brandsBaseService - Close all the service
 func (p *brandBaseService) EndService() {
 	log.Printf("EndService ")
 	p.CloseDatabaseService()

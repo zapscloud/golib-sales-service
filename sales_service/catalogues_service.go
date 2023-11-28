@@ -86,7 +86,7 @@ func NewCatalogueService(props utils.Map) (CatalogueService, error) {
 	return &p, err
 }
 
-// catalogueBaseService - Close all the services
+// catalogueBaseService - Close all the service
 func (p *catalogueBaseService) EndService() {
 	log.Printf("EndService ")
 	p.CloseDatabaseService()

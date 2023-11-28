@@ -86,7 +86,7 @@ func NewCategoryService(props utils.Map) (CategoryService, error) {
 	return &p, err
 }
 
-// catogoryBaseService - Close all the services
+// catogoryBaseService - Close all the service
 func (p *categoryBaseService) EndService() {
 	log.Printf("EndService ")
 	p.CloseDatabaseService()

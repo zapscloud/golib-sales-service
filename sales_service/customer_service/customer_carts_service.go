@@ -1,4 +1,4 @@
-package customer_services
+package customer_service
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 	"github.com/zapscloud/golib-dbutils/db_common"
 	"github.com/zapscloud/golib-dbutils/db_utils"
 	"github.com/zapscloud/golib-platform-repository/platform_repository"
-	platform_services "github.com/zapscloud/golib-platform-service/platform_service"
+	"github.com/zapscloud/golib-platform-service/platform_service"
 	"github.com/zapscloud/golib-sales-repository/sales_common"
 	"github.com/zapscloud/golib-sales-repository/sales_repository"
 	"github.com/zapscloud/golib-sales-repository/sales_repository/customer_repository"
@@ -63,7 +63,7 @@ func NewCustomerCartService(props utils.Map) (CustomerCartService, error) {
 	}
 
 	// Open RegionDB Service
-	p.dbRegion, err = platform_services.OpenRegionDatabaseService(props)
+	p.dbRegion, err = platform_service.OpenRegionDatabaseService(props)
 	if err != nil {
 		p.CloseDatabaseService()
 		return nil, err
@@ -107,7 +107,7 @@ func NewCustomerCartService(props utils.Map) (CustomerCartService, error) {
 	return &p, err
 }
 
-// customerCartBaseService - Close all the services
+// customerCartBaseService - Close all the service
 func (p *customerCartBaseService) EndService() {
 	log.Printf("EndService ")
 	p.CloseDatabaseService()

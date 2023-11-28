@@ -83,7 +83,7 @@ func NewCouponService(props utils.Map) (CouponService, error) {
 	return &p, err
 }
 
-// couponBaseService - Close all the services
+// couponBaseService - Close all the service
 func (p *couponBaseService) EndService() {
 	log.Printf("EndService ")
 	p.CloseDatabaseService()

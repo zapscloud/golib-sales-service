@@ -88,7 +88,7 @@ func NewCustomerService(props utils.Map) (CustomerService, error) {
 	return &p, err
 }
 
-// EndService - Close all the services
+// EndService - Close all the service
 func (p *customerBaseService) EndService() {
 	log.Printf("EndService ")
 	p.CloseDatabaseService()

@@ -83,7 +83,7 @@ func NewCampaignService(props utils.Map) (CampaignService, error) {
 	return &p, err
 }
 
-// campaignBaseService - Close all the services
+// campaignBaseService - Close all the service
 func (p *campaignBaseService) EndService() {
 	log.Printf("EndService ")
 	p.CloseDatabaseService()

@@ -83,7 +83,7 @@ func NewCustomerTypeService(props utils.Map) (CustomerTypeService, error) {
 	return &p, err
 }
 
-// EndService - Close all the services
+// EndService - Close all the service
 func (p *CustomerTypeBaseService) EndService() {
 	log.Printf("EndService ")
 	p.CloseDatabaseService()
