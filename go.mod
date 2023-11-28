@@ -3,10 +3,10 @@ module github.com/zapscloud/golib-sales-service
 go 1.20
 
 require (
-	github.com/zapscloud/golib-auth v1.0.1-0.20231016135600-058e61695557
+	github.com/zapscloud/golib-auth v1.0.1-0.20231128084846-6f5eb865f5b4
 	github.com/zapscloud/golib-dbutils v1.1.1-0.20231124095025-d80e6a37988a
 	github.com/zapscloud/golib-platform-repository v0.0.0-20231122060842-7f09c52e6a38
-	github.com/zapscloud/golib-platform-service v0.0.0-20231104052444-07da4e75a984
+	github.com/zapscloud/golib-platform-service v0.0.0-20231122105022-d0d0f2a614b1
 	github.com/zapscloud/golib-sales-repository v0.0.0-20231128084119-e0cb726bd52b
 	github.com/zapscloud/golib-utils v1.0.1-0.20231117081529-93ad4f30cea1
 
@@ -31,7 +31,6 @@ require (
 	github.com/xdg-go/stringprep v1.0.4 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20201027041543-1326539a0a0a // indirect
 	github.com/zapscloud/golib v1.0.4 // indirect
-	github.com/zapscloud/golib-platform v1.0.1-0.20231016122131-18d78ba724b1 // indirect
 	go.mongodb.org/mongo-driver v1.12.1 // indirect
 	golang.org/x/crypto v0.2.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect

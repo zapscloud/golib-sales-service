@@ -6,6 +6,7 @@ import (
 	"github.com/zapscloud/golib-auth/auth_common"
 	"github.com/zapscloud/golib-auth/auth_services"
 	"github.com/zapscloud/golib-platform-repository/platform_common"
+	"github.com/zapscloud/golib-platform-service/platform_service"
 	"github.com/zapscloud/golib-sales-repository/sales_common"
 	"github.com/zapscloud/golib-sales-service/sales_service"
 
@@ -51,7 +52,7 @@ func ValidateAuthCredential(dbProps utils.Map, dataAuth utils.Map) (utils.Map, e
 
 	// Validate BusinessId is exist
 	if !utils.IsEmpty(businessId) {
-		_, err = auth_services.IsBusinessExist(dbProps, businessId)
+		_, err := isBusinessExist(dbProps, businessId)
 		if err != nil {
 			return nil, err
 		}
@@ -136,4 +137,22 @@ func authenticateCustomer(dbProps utils.Map, businessId string, dataAuth utils.M
 	}
 
 	return appUserData, nil
+}
+func isBusinessExist(dbProps utils.Map, businessId string) (utils.Map, error) {
+	// User Validation
+	bizService, err := platform_service.NewBusinessService(dbProps)
+	if err != nil {
+		err := &utils.AppError{ErrorStatus: 417, ErrorMsg: "Status Expectation Failed", ErrorDetail: "Authentication Failure"}
+		return nil, err
+	}
+	defer bizService.EndService()
+
+	log.Println("isBusinessExist::Parameter Value ", businessId)
+	bizData, err := bizService.Get(businessId)
+	if err != nil {
+		err := &utils.AppError{ErrorStatus: 401, ErrorMsg: "Invalid BusinessId", ErrorDetail: "No such BusinessId found"}
+		return nil, err
+	}
+
+	return bizData, nil
 }
