@@ -7,7 +7,7 @@ require (
 	github.com/zapscloud/golib-dbutils v1.1.1-0.20231124095025-d80e6a37988a
 	github.com/zapscloud/golib-platform-repository v0.0.0-20231122060842-7f09c52e6a38
 	github.com/zapscloud/golib-platform-service v0.0.0-20231122105022-d0d0f2a614b1
-	github.com/zapscloud/golib-sales-repository v0.0.0-20231128084119-e0cb726bd52b
+	github.com/zapscloud/golib-sales-repository v0.0.0-20240106063710-51fa1b49e8db
 	github.com/zapscloud/golib-utils v1.0.1-0.20231117081529-93ad4f30cea1
 
 )
