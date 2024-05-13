@@ -34,7 +34,7 @@ type FirmnessService interface {
 type firmnessBaseService struct {
 	db_utils.DatabaseService
 	dbRegion    db_utils.DatabaseService
-	daoFirmness    sales_repository.FirmnessDao
+	daoFirmness sales_repository.FirmnessDao
 	daoBusiness platform_repository.BusinessDao
 	child       FirmnessService
 	businessId  string
@@ -134,17 +134,17 @@ func (p *firmnessBaseService) Create(indata utils.Map) (utils.Map, error) {
 	log.Println("FirmnessService::Create - Begin")
 	var firmnessId string
 
-	dataval, dataok := indata[sales_common.FLD_OFFER_ID]
+	dataval, dataok := indata[sales_common.FLD_FIRMNESS_ID]
 	if dataok {
 		firmnessId = strings.ToLower(dataval.(string))
 	} else {
-		firmnessId = utils.GenerateUniqueId("offr")
+		firmnessId = utils.GenerateUniqueId("firms")
 		log.Println("Unique Firmness ID", firmnessId)
 	}
 
 	// Assign BusinessId
 	indata[sales_common.FLD_BUSINESS_ID] = p.businessId
-	indata[sales_common.FLD_OFFER_ID] = firmnessId
+	indata[sales_common.FLD_FIRMNESS_ID] = firmnessId
 
 	data, err := p.daoFirmness.Create(indata)
 	if err != nil {
