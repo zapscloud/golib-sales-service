@@ -139,7 +139,7 @@ func (p *serviceBaseService) Create(indata utils.Map) (utils.Map, error) {
 	if dataok {
 		serviceId = strings.ToLower(dataval.(string))
 	} else {
-		serviceId = utils.GenerateUniqueId("prod")
+		serviceId = utils.GenerateUniqueId("serv")
 		log.Println("Unique Service ID", serviceId)
 	}
 
